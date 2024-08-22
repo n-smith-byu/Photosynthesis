@@ -1,8 +1,8 @@
-from Server import Server
-
+from Server import GameServer
 
 def main():
-    Server().run()
+    server = GameServer(num_humans=2)
+    server.run()
 
 
 main()

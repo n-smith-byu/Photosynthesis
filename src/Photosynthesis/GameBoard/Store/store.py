@@ -1,10 +1,10 @@
 import numpy as np
 from collections import defaultdict
-from Players import Player
+from Photosynthesis.Players import Player
 
-class Store:
-    def __init__(self, player:Player):
-        self.__player = player
+class PlayerStore:
+    def __init__(self, player_num):
+        self.__player_num = player_num
         self.__capacities = {0:4, 1:5, 2:3, 3:2}
         self.__inventory = {0:4, 1:4, 2:3, 3:2}
 
@@ -28,5 +28,8 @@ class Store:
             return False
         
         self.__inventory[size] -= 1
+
+    def player_num(self):
+        return self.__player_num
 
 

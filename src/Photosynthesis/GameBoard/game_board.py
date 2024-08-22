@@ -1,17 +1,11 @@
+from .Inventory import PlayerInventory
+from .Store import PlayerStore
+from .Trees import Tree
+
+from collections import defaultdict
 import numpy as np
 
 class GameBoard:
-    def __init__(self, num_players):
-        self.tree_board = GameBoard.get_empty_board()
-        self.player_board = GameBoard.get_empty_board()
-        self.trees = {}
-
-        
-
-
-    def apply_action(action):
-        pass
-
     @staticmethod
     def get_empty_board(zeros=False):
         F = np.inf
@@ -27,3 +21,13 @@ class GameBoard:
             board += 1
         
         return board
+
+    def __init__(self, num_players):
+        self.tree_board = GameBoard.get_empty_board()
+        self.player_board = GameBoard.get_empty_board()
+        self.player_trees = defaultdict(set)      # dictionary of trees by player
+        self.tree_positions = {}
+
+    def apply_action(action):
+        pass
+

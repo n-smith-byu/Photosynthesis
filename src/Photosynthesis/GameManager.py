@@ -1,5 +1,5 @@
-from Players import *
-from GameBoard import *
+from .Players import *
+from .GameBoard import *
 
 class PhotosynthesisGame:
     SUN_POSITIONS = 6
@@ -11,7 +11,7 @@ class PhotosynthesisGame:
         self.__players: list[Player]
 
         self.__initialize_players(num_humans, num_bots)
-        self.__initialize_board()
+        self.__initialize_board(self.num_players)
         
         self.__num_rounds = 3 + extra_round
 
@@ -36,8 +36,8 @@ class PhotosynthesisGame:
         for i in range(self.num_players):
             self.__players.append(player_classes[i](player_num=i))
 
-    def __initialize_board(self):
-        self.board = GameBoard()
+    def __initialize_board(self, num_players):
+        self.board = GameBoard(num_players)
 
 
     # Public Methods
