@@ -3,3 +3,6 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+testing/
+testing/Untitled.ipynb
