@@ -10,8 +10,8 @@ import uuid
 class WaitingRoom:
     def __init__(self, GameClass: Type[BoardGame]):
         self.game_class = GameClass
-        self.human_player_class: Type[HumanPlayer] = GameClass.get_ai_player_class()
-        self.ai_player_class: Type[AIPlayer] = GameClass.get_human_player_class()
+        self.human_player_class: Type[HumanPlayer] = GameClass.get_human_player_class()
+        self.ai_player_class: Type[AIPlayer] = GameClass.get_ai_player_class()
 
         self.__num_bots = 0
         self.__num_humans = 0
@@ -20,12 +20,11 @@ class WaitingRoom:
         self.__player_keys = {}
         
     def add_player(self, player_name=None):
-        if len(self.__players) > self.game_class.get_max_num_players():
+        if len(self.__players) >= self.game_class.get_max_num_players():
             raise TooManyPlayersException(self.game_class.get_max_num_players())
         
-        unique_key = uuid.uuid4()
-        self.__players.append(self.human_player_class(player_num=len(self.__players), 
-                             player_name=player_name))
+        unique_key = str(uuid.uuid4())
+        self.__players.append(self.human_player_class(player_name=player_name))
         self.__player_keys[unique_key] = self.__players[-1]
         self.__num_humans += 1
 
@@ -34,8 +33,10 @@ class WaitingRoom:
     def remove_player(self, unique_key) -> HumanPlayer:
         """Removes a Human Player from the list if they exist"""
         self.__players.remove(self.__player_keys[unique_key])
+        player = self.__player_keys.pop(unique_key)
+        self.__num_humans -= 1
 
-        return self.__player_keys.pop(unique_key)
+        return player
             
     def add_bot(self):        
         if len(self.__players) > 4:
@@ -65,7 +66,10 @@ class WaitingRoom:
 
         return players
     
-    def num_players(self):
+    def total_num_players(self):
+        return len(self.__players)
+    
+    def num_human_players(self):
         return self.__num_humans
     
     def num_bots(self):

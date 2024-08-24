@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 
 class Player(ABC):
 
-    def __init__(self, is_bot, name=None, player_num=None):
-        self.__name = name
+    def __init__(self, is_bot, player_name=None, player_num=None):
+        self.__name = player_name
         self.__player_num = player_num
         self.__is_bot = is_bot
 
@@ -26,7 +26,7 @@ class Player(ABC):
         return self.__player_num
     
     @property
-    def name(self):
+    def player_name(self):
         return self.__derive_name()
 
     @abstractmethod

@@ -11,7 +11,7 @@ class HumanPlayer(Player):
 
     """
     def __init__(self, player_name=None, player_num=None):
-        super(HumanPlayer, self).__init__(is_bot=False, name=player_name, player_num=player_num)
+        super(HumanPlayer, self).__init__(is_bot=False, player_name=player_name, player_num=player_num)
 
     def change_name(self, new_name):
         self.__name = new_name
