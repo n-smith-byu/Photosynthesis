@@ -1,17 +1,32 @@
-from .Players import *
+from typing import Type
+from BoardGame import BoardGame
+from BoardGame.Players import AIPlayer, HumanPlayer, Player
+from .PlayerTypes import *
 from .GameBoard import *
 
-class PhotosynthesisGame:
+class PhotosynthesisGame(BoardGame):
+    @classmethod
+    def get_max_num_players(cls) -> int:
+        return 4
+    
+    @classmethod
+    def get_min_num_players(cls) -> int:
+        return 2
+    
+    @classmethod
+    def get_ai_player_class(cls) -> type[AIPlayer]:
+        return AIPlayer
+    
+    @classmethod
+    def get_human_player_class(cls) -> type[HumanPlayer]:
+        return HumanPlayer
+
     SUN_POSITIONS = 6
 
-    def __init__(self, num_humans=1, num_bots=2, extra_round=False):
-        self.__num_bots = num_bots
-        self.__num_humans = num_humans
-        self.__num_players: int
-        self.__players: list[Player]
-
-        self.__initialize_players(num_humans, num_bots)
-        self.__initialize_board(self.num_players)
+    def __init__(self, players: list[Player], extra_round: bool=False):
+        self.__players = players
+        self,__num_players = len(players)
+        self.__initialize_board(self.__num_players)
         
         self.__num_rounds = 3 + extra_round
 

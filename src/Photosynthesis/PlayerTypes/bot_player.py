@@ -1,10 +1,10 @@
-from ..player import Player
+from BoardGame.Players import AIPlayer
 import numpy as np
 
 
-class AIPlayer(Player):
-    def __init__(self, player_num):
-        super(AIPlayer, self).__init__(player_num, is_bot=True)
+class PhotosynthesisAIPlayer(AIPlayer):
+    def __init__(self, player_num=None):
+        super(PhotosynthesisAIPlayer, self).__init__(player_num)
 
     def choose_move(self, possible_actions):
         # TODO: Make Automatic

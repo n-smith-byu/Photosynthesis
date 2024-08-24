@@ -1,6 +1,5 @@
 import numpy as np
 from collections import defaultdict
-from Photosynthesis.Players import Player
 
 class PlayerStore:
     def __init__(self, player_num):

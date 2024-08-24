@@ -1,7 +1,8 @@
 from Server import GameServer
+from Photosynthesis import PhotosynthesisGame
 
 def main():
-    server = GameServer(num_humans=2)
+    server = GameServer(PhotosynthesisGame)
     server.run()
 
 

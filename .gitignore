@@ -4,5 +4,4 @@ __pycache__/
 *.pyo
 *.pyd
 
-testing/
-testing/Untitled.ipynb
+test/Untitled.ipynb
