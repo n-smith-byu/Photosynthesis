@@ -1,5 +1,6 @@
 # Photosynthesis Board Game AI
 
-I am attempting to build an AI to play Photosynthesis by [BlueOrange](https://www.blueorangegames.com/) Games
+I am attempting to build an AI to play Photosynthesis by <a href="https://www.blueorangegames.com/" target="_blank">BlueOrange</a> Games
 
-[Image](./resources/PhotosynthesisBoard.jpg)
+
+<img src="./resources/PhotosynthesisBoard.jpg" alt="Alt Text" height="300">
