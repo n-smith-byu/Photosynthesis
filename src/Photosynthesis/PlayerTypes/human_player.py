@@ -1,4 +1,4 @@
-from BoardGame.Players import HumanPlayer
+from src.BoardGame.Players import HumanPlayer
 
 class PhotosynthesisHumanPlayer(HumanPlayer):
     def __init__(self, player_name=None):

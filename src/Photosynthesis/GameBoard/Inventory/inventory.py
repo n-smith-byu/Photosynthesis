@@ -1,53 +1,36 @@
-
+from src.Photosynthesis.GameBoard.Trees import Tree
+from src.Photosynthesis.GameBoard.Exceptions import OutOfStockException
 
 class PlayerInventory:
     def __init__(self, player_num):
         self.__player_num = player_num
-        self.__trees: dict
-        self.__suns: int
-        self.__points: int
+        self.__starting_vals = {0:4, 1:4, 2:3, 3:2}
+        self.__trees: dict[int, list[Tree]]
 
         self.reset()
 
     def reset(self):
-        self.__trees = {0:2,1:4,2:1,3:0}
-        self.__suns = 0
-        self.__points = 0
+        self.__trees = {}
+        for tree_size in self.__starting_vals:
+            self.__trees[tree_size] = [Tree(size=tree_size, player_num=self.__player_num) \
+                                        for k in range(self.__starting_vals[tree_size])]
 
-    def add_tree(self, size):
-        if size in [0,1,2,3]:
-            self.__trees[size] += 1
-            return True
+    def add_tree(self, tree:Tree):
+        if tree.player == self.__player_num:
+            self.__trees[tree.size].append(tree)
         else:
-            return False
+            raise ValueError('Tree does not belong to this player')
 
     def remove_tree(self, size):
-        if size in [0,1,2,3] and self.__trees[size] > 0:
-            self.__trees[size] -= 1
-            return True
-        else:
-            return False
+        if len(self.__trees[size]) == 0:
+            raise OutOfStockException(f"No trees of size {size} in Player {self.player_num}'s inventory")
         
-    def subtract_suns(self, number):
-        if number >= 0 and self.__suns >= number:
-            self.__suns -= number
-            return True 
-        else:
-            return False
+        return self.__trees[size].pop(0)
         
-    def add_suns(self, number):
-        if number >= 0:
-            self.__suns = min(self.__suns + number, 20)     # suns cap out at 20
-            return True
-        else:
-            return False
-        
-    def add_points(self, number):
-        if number >= 0:
-            self.__points += number
-            return True
-        else:
-            return False
-        
+    @property
     def player_num(self):
         return self.__player_num
+    
+    def num_available_trees(self, size):
+        return len(self.__trees[size])
+
