@@ -1,9 +1,9 @@
 from Server import GameServer
 from Photosynthesis import PhotosynthesisGame
+import asyncio
 
-def main():
+async def main():
     server = GameServer(PhotosynthesisGame)
-    server.run()
+    await server.run()
 
-
-main()
+asyncio.run(main())

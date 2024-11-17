@@ -26,8 +26,11 @@ class BoardGame(ABC):
     def get_human_player_class(cls) -> Type[HumanPlayer]:
         raise NotImplementedError()
     
-    def __init__(self):
-        self.__players: list[Player] = []
+    def __init__(self, players=None):
+        if players is None:
+            self.__players: list[Player] = []
+        else:
+            self.__players = players
     
     def add_players(self, players: list[Player]):
         if len(players) > BoardGame.get_max_num_players():

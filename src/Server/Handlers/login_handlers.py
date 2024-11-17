@@ -4,6 +4,7 @@ from BoardGame.Players import HumanPlayer
 from .game_handlers import GameHandler
 
 from http.server import BaseHTTPRequestHandler
+import urllib.parse
 import json
 
 class LoginHandler(BaseHTTPRequestHandler):
@@ -16,24 +17,22 @@ class LoginHandler(BaseHTTPRequestHandler):
         print(f'POST Request Received at {self.path}')
         
         # verifying path
-        url_path: list[str] = self.validate_and_split_url(self.path)
+        url_path, query = self.__validate_and_split_url(self.path)
         if not url_path:
             self.send_error(404, self.not_found_error)
             return
         url_path = url_path[1:]                         # remove leading empty string
 
         # login
-        if url_path[0] == 'login':
-            if len(url_path) > 2:
+        if url_path[0] == 'register_player':
+
+            if len(url_path) != 2:
                 self.send_error(404, self.not_found_error)
                 return
-            elif len(url_path) == 2:
-                player_name = url_path[1]
             else:
-                player_name = None
-
+                player_key = url_path[1]                                    # path should be '/register_player/{player_key}
             try:
-                json_response = self.__add_login(player_name)
+                json_response = self.__add_login(player_key)
                 self.send_response(201, "Successfully Logged In")
                 self.send_header('Content-type', 'application/json')
                 self.end_headers()
@@ -45,7 +44,7 @@ class LoginHandler(BaseHTTPRequestHandler):
         # remove_player
         elif url_path[0] == 'remove_player':
             if len(url_path) != 2:
-                self.send_error(404, self.not_found_error)                 # path should be '/remove_player/{unique_key}'
+                self.send_error(404, self.not_found_error)                 # path should be '/remove_player/{player_key}'
             else:
                 unique_key = url_path[1]
                 try:
@@ -101,7 +100,7 @@ class LoginHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         # verifying path
-        url_path: list[str] = self.validate_and_split_url(self.path)
+        url_path: list[str] = self.__validate_and_split_url(self.path)
         if not url_path:
             self.send_error(404, self.not_found_error)
             return
@@ -184,11 +183,19 @@ class LoginHandler(BaseHTTPRequestHandler):
 
         self.server.RequestHandlerClass = GameHandler           # change to the game request handler
     
-    def validate_and_split_url(self, url):
-        if url[0] != '/':               
-            return []
-        
-        return url.split(sep='/')
+    def __validate_and_split_url(self, url:str):
+        parsed_url = urllib.parse.urlparse(url)
+        url_path = parsed_url.path
+        url_query = parsed_url.query
+
+        if url_path[0] == '/':
+            parsed_url_path = url_path.split(sep='/')[1:]
+        else:
+            parsed_url_path = []
+
+        parsed_url_query = urllib.parse.parse_qs(url_path)
+
+        return parsed_url_path, parsed_url_query
 
 
 

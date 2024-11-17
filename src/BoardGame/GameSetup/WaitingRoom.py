@@ -79,4 +79,4 @@ class WaitingRoom:
         if len(self.__players) < self.game_class.get_min_num_players():
             raise NotEnoughPlayersException()
         
-        return self.game_class(**game_parameters)
+        return self.game_class(players=self.__players, **game_parameters)
