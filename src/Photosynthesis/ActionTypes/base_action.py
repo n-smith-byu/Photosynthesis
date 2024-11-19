@@ -7,4 +7,12 @@ class Action(ABC):
     @property
     def player(self):
         return self.__player
+    
+    @abstractmethod
+    def __str__(self):
+        return str(self.__player)
+    
+    @abstractmethod
+    def sort_key(self):
+        return self.__player
         

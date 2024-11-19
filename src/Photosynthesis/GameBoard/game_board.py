@@ -44,7 +44,7 @@ class GameBoard:
         self.__player_board = GameBoard.get_empty_board()
         self.__points_bank = PointsBank()
         self.__trees:set[Tree] = set()        # set of all trees on the board
-        self.__sun_position = 0
+        self.__sun_position = -1
 
         self.__board_height = self.__tree_board.shape[0]
         self.__board_width = self.__tree_board.shape[1]
@@ -75,35 +75,27 @@ class GameBoard:
             return set()
         
         valid_seed_positions = set()
-        self.__find_valid_seed_positions(start_position=tree.position,
-                                         curr_position=tree.position,
+        self.__find_valid_seed_positions(curr_position=tree.position,
                                          curr_distance=0,
                                          tree_size=tree.size,
-                                         visited=set(),
                                          valid_seed_positions=valid_seed_positions)
         return valid_seed_positions
 
-    def __find_valid_seed_positions(self, start_position, curr_position, curr_distance, 
-                                    tree_size, visited:set, valid_seed_positions:set):
+    def __find_valid_seed_positions(self, curr_position, curr_distance, tree_size, 
+                                    valid_seed_positions:set):
         if curr_position not in self.__valid_board_spaces:
             return
 
         if self.__tree_board[*curr_position] == -1:
             valid_seed_positions.add(curr_position)
 
-        visited.add(curr_position)
-
         if curr_distance == tree_size:
             return
         for direction in GameBoard.__DIRECTION_VECTORS:
-            new_position = tuple(np.array(start_position) + direction)
-            if tuple(new_position) in visited:
-                continue
-            self.__find_valid_seed_positions(start_position=start_position,
-                                             curr_position=tuple(new_position), 
+            new_position = tuple(int(x) for x in (np.array(curr_position) + direction))
+            self.__find_valid_seed_positions(curr_position=new_position, 
                                              curr_distance=curr_distance + 1,
                                              tree_size=tree_size,
-                                             visited=visited,
                                              valid_seed_positions=valid_seed_positions)
         
     def get_trees_with_possible_actions(self, player_num, sizes=None):
@@ -185,9 +177,9 @@ class GameBoard:
             raise ValueError('Tree does not exist on board')
         
     def get_possible_first_turn_spaces(self):
-        return {(0,0), (0,1), (0,2), (0,3), (1,4), (2,5),
+        return [(0,0), (0,1), (0,2), (0,3), (1,4), (2,5),
                 (3,6), (4,6), (5,6), (6,6), (6,5), (6,4),
-                (6,3), (5,2), (4,1), (3,0), (2,0), (1,0)}
+                (6,3), (5,2), (4,1), (3,0), (2,0), (1,0)]
 
     def get_possible_actions(self, player_num):
         possible_actions = set()
@@ -199,10 +191,12 @@ class GameBoard:
             # check growing/harvesting
             if tree.size < 3:
                 if player['inventory'].num_available_trees(tree.size + 1) > 0 \
-                        and player['suns'] >= tree.cost_to_grow():
+                        and player['suns'] >= tree.cost_to_grow() \
+                        and not tree.grown_this_turn():
                     possible_actions.add(GrowTree(player_num, tree))
             else:
-                if player['suns'] >= tree.cost_to_grow():
+                if player['suns'] >= tree.cost_to_grow() \
+                        and not tree.grown_this_turn():
                     possible_actions.add(HarvestTree(player_num, tree))
 
             # check planting seeds
@@ -221,7 +215,7 @@ class GameBoard:
         # passing is always an option
         possible_actions.add(PassTurn(player_num))
 
-        return possible_actions
+        return sorted(possible_actions, key=lambda action: action.sort_key())
     
     # --------------- #
     # Get Player Info #
@@ -320,8 +314,10 @@ class GameBoard:
                              "Either the space doesn't exist, isn't reachable by this tree, or is occupied.")
         
         # plant the seed
-        seed = player['inventory'].remove_tree(size=0)
+        seed:Tree = player['inventory'].remove_tree(size=0)
         self.__add_tree(seed, position)
+        seed.set_grown_flag()
+        parent.set_grown_flag()
         player['suns'] -= cost
 
     def player_initial_tree_placement(self, player_num, position):

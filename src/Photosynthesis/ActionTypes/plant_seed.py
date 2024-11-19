@@ -14,3 +14,9 @@ class PlantSeed(Action):
     @property
     def parent_tree(self):
         return self.__parent_tree
+    
+    def __str__(self):
+        return f"('plant_seed', pos=({self.__position}, parent=({self.__parent_tree.size}, {self.__parent_tree.position})))"
+    
+    def sort_key(self):
+        return (super().sort_key(), 1, self.__parent_tree.position, self.__position)

@@ -12,3 +12,9 @@ class GrowTree(Action):
     @property
     def tree(self):
         return self.__tree
+    
+    def __str__(self):
+        return f"('grow_tree', size={self.__tree.size}, pos={self.__tree.position})"
+    
+    def sort_key(self):
+        return (super().sort_key(), 2, self.__tree.size, self.__tree.position)
