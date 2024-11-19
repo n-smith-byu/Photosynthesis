@@ -1,7 +1,7 @@
 from typing import Type
 from . import PlayerTypes
 from .GameBoard import *
-from .ActionTypes import BuyTree, PlantSeed, GrowTree, HarvestTree, PassTurn
+from .ActionTypes import BuyTree, PlantSeed, GrowTree, HarvestTree, PassTurn, InitialPlacement
 from src import BoardGame
 import numpy as np
 
@@ -41,22 +41,31 @@ class PhotosynthesisGame(BoardGame.BoardGame):
 
     # Public Methods
 
-    def run(self):
-        possible_first_actions = list(self.__board.get_possible_first_turn_spaces())
+    def run(self, display=False):
+        available_spaces = self.__board.get_possible_first_turn_spaces()
         # setting initial trees on board
         for i in range(2):
-            for player_num in range(self.__num_players):
+            self.__curr_player = self.__first_player_token
+            for i in range(self.__num_players):
+                player_num = self.__curr_player
+                player = self._BoardGame__players[player_num]
+                possible_actions = [InitialPlacement(player_num, pos, i) for i, pos in enumerate(available_spaces)]
+                if display:
+                    print(f"{player.player_name}'s Turn")
+                    self.__board.print_boards()
+
                 while True:
-                    player = self._BoardGame__players[player_num]
-                    action_ind = player.choose_move(possible_first_actions.copy())
+                    action_ind = player.choose_move(possible_actions.copy(), num_suns=0)
                     try:
-                        position = possible_first_actions[action_ind]
+                        action:InitialPlacement = possible_actions[action_ind]
                     except Exception as ex:
                         print('Invalid Action')
-                    else:
-                        self.__board.player_initial_tree_placement(player_num, position)
-                        possible_first_actions.remove(position)
-                        break
+
+                    self.__board.player_initial_tree_placement(action.player, action.position)
+                    available_spaces.remove(action.position)
+                    break
+
+                self.__curr_player = (self.__curr_player + 1) % self.__num_players
 
         # playing the game
         self.__board.rotate_sun()
@@ -65,21 +74,28 @@ class PhotosynthesisGame(BoardGame.BoardGame):
 
             for sun_pos in range(PhotosynthesisGame.SUN_POSITIONS):
                 self.__curr_player = self.__first_player_token
+                print(f'Sun Pointing: {self.__board.get_sun_direction_vec()}')
                 for i in range(self.__num_players):
                     player:BoardGame.Players.Player = self._BoardGame__players[self.__curr_player]
-                    possible_actions = list(self.__board.get_possible_actions(self.__curr_player))
-                    while True:
-                        action_ind= player.choose_move(possible_actions.copy())
-                        try:
-                            action = possible_actions[action_ind]
-                        except Exception as ex:
-                            print('Invalid Action')
-                        else:
-                            if isinstance(action, PassTurn):
-                                break
+                    while True:      # until player passes their turn
+                        if display:
+                            print(f"{player.player_name}'s Turn")
+                            self.__board.print_boards()
+                        possible_actions = list(self.__board.get_possible_actions(self.__curr_player))
+                        num_suns = self.__board.get_player_suns(self.__curr_player)
+                        while True:     # until valid action chosen
+                            action_ind= player.choose_move(possible_actions.copy(), num_suns)
+                            try:
+                                action = possible_actions[action_ind]
+                            except Exception as ex:
+                                print('Invalid Action')
                             else:
-                                self.apply_action(action)
                                 break
+
+                        if isinstance(action, PassTurn):
+                            break
+                        else:
+                            self.apply_action(action)
                     
                     self.__curr_player = (self.__curr_player + 1) % self.__num_players
                     

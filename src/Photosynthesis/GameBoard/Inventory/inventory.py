@@ -4,7 +4,7 @@ from src.Photosynthesis.GameBoard.Exceptions import OutOfStockException
 class PlayerInventory:
     def __init__(self, player_num):
         self.__player_num = player_num
-        self.__starting_vals = {0:4, 1:4, 2:3, 3:2}
+        self.__starting_vals = {0:2, 1:4, 2:1, 3:0}
         self.__trees: dict[int, list[Tree]]
 
         self.reset()

@@ -78,5 +78,6 @@ class WaitingRoom:
     def create_game(self, **game_parameters):
         if len(self.__players) < self.game_class.get_min_num_players():
             raise NotEnoughPlayersException()
-        
+        for i, player in enumerate(self.__players):
+            player.assign_player_num(i)
         return self.game_class(players=self.__players, **game_parameters)
