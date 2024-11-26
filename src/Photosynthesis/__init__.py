@@ -1,4 +1,4 @@
-from .photosynthesis_game import PhotosynthesisGame
+from .Game import PhotosynthesisGame
 from .GameBoard import *
 from .PlayerTypes import *
 from . import ActionTypes

@@ -25,12 +25,25 @@ class GameBoard:
         
         return board
     
-    __DIRECTION_VECTORS = np.array([[ 1, 1],
-                                    [ 1, 0],
-                                    [ 0,-1],
-                                    [-1,-1],
-                                    [-1, 0],
-                                    [ 0, 1]])
+    @staticmethod
+    def get_soil_richness():
+        F = np.inf
+        return np.array([[ 1,  1,  1,  1, -F, -F, -F],
+                         [ 1,  2,  2,  2,  1, -F, -F],
+                         [ 1,  2,  3,  3,  2,  1, -F],
+                         [ 1,  2,  3,  4,  3,  2,  1],
+                         [-F,  1,  2,  3,  3,  2,  1],
+                         [-F, -F,  1,  2,  2,  2,  1],
+                         [-F, -F, -F,  1,  1,  1,  1]])
+    
+    @staticmethod
+    def get_sun_direction_vecs():
+        return np.array([[ 1, 1],
+                         [ 1, 0],
+                         [ 0,-1],
+                         [-1,-1],
+                         [-1, 0],
+                         [ 0, 1]])
 
     def __init__(self, num_players):
         self.__num_players = num_players
@@ -49,14 +62,7 @@ class GameBoard:
         self.__board_height = self.__tree_board.shape[0]
         self.__board_width = self.__tree_board.shape[1]
 
-        F = np.inf
-        self.__soil_richness = np.array([[ 1,  1,  1,  1, -F, -F, -F],
-                                         [ 1,  2,  2,  2,  1, -F, -F],
-                                         [ 1,  2,  3,  3,  2,  1, -F],
-                                         [ 1,  2,  3,  4,  3,  2,  1],
-                                         [-F,  1,  2,  3,  3,  2,  1],
-                                         [-F, -F,  1,  2,  2,  2,  1],
-                                         [-F, -F, -F,  1,  1,  1,  1]])
+        self.__soil_richness = GameBoard.get_soil_richness()
 
         self.__players = defaultdict(dict)
         for player_ind in range(self.__num_players):
@@ -64,9 +70,7 @@ class GameBoard:
             self.__players[player_ind]['store'] = PlayerStore(player_ind)
             self.__players[player_ind]['suns'] = 0
             self.__players[player_ind]['points'] = 0
-
-    def get_sun_direction_vec(self):
-        return GameBoard.__DIRECTION_VECTORS[self.__sun_position].copy()
+            self.__players[player_ind]['new_suns'] = 0
     
     def get_valid_seed_positions(self, tree:Tree):
         if tree not in self.__trees:
@@ -91,7 +95,7 @@ class GameBoard:
 
         if curr_distance == tree_size:
             return
-        for direction in GameBoard.__DIRECTION_VECTORS:
+        for direction in GameBoard.get_sun_direction_vecs():
             new_position = tuple(int(x) for x in (np.array(curr_position) + direction))
             self.__find_valid_seed_positions(curr_position=new_position, 
                                              curr_distance=curr_distance + 1,
@@ -121,11 +125,15 @@ class GameBoard:
         return False
     
     def __collect_suns(self):
+        for player in self.__players:
+            self.__players[player]['new_suns'] = 0
+
         tree: Tree = None
         for tree in self.__trees:
             if not self.tree_in_shadow(tree):
+                self.__players[tree.player]['new_suns'] += tree.size
                 new_sun_count = self.__players[tree.player]['suns'] + tree.size
-                self.__players[tree.player]['suns']  = min(new_sun_count, 20)
+                self.__players[tree.player]['suns'] = min(new_sun_count, 20)
 
     def get_open_board_spaces(self):
         return [board_space for board_space in self.__valid_board_spaces \
@@ -144,9 +152,6 @@ class GameBoard:
             tree.clear_grown_flag()
 
         self.__collect_suns()
-    
-    def get_sun_pos(self):
-        return self.__sun_position
 
     def __add_tree(self, tree:Tree, pos):
         if pos not in self.__valid_board_spaces:
@@ -218,6 +223,24 @@ class GameBoard:
         return sorted(possible_actions, key=lambda action: action.sort_key())
     
     # --------------- #
+    # Get Board Info #
+    # --------------- #
+    def get_sun_pos(self):
+        return self.__sun_position
+    
+    def get_sun_direction_vec(self):
+        return GameBoard.get_sun_direction_vecs()[self.__sun_position]
+    
+    def get_player_board(self):
+        return self.__player_board.copy()
+
+    def get_tree_board(self):
+        return self.__tree_board.copy()
+    
+    def get_remaining_points(self):
+        return self.__points_bank.remaining_points
+
+    # --------------- #
     # Get Player Info #
     # --------------- #
     def get_player_scores(self):
@@ -227,8 +250,14 @@ class GameBoard:
         
         return scores
     
+    def get_player_score(self, player):
+        return self.__players[player]['points']
+    
     def get_player_suns(self, player):
         return self.__players[player]['suns']
+    
+    def get_player_new_suns_this_turn(self, player):
+        return self.__players[player]['new_suns']
     
     # ------------- #
     #### Apply Actions ####

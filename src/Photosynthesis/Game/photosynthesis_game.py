@@ -1,7 +1,7 @@
 from typing import Type
-from . import PlayerTypes
-from .GameBoard import *
-from .ActionTypes import BuyTree, PlantSeed, GrowTree, HarvestTree, PassTurn, InitialPlacement
+from ..PlayerTypes import AIPlayer, HumanPlayer
+from src.Photosynthesis.GameBoard import *
+from ..ActionTypes import BuyTree, PlantSeed, GrowTree, HarvestTree, PassTurn, InitialPlacement
 from src import BoardGame
 import numpy as np
 
@@ -16,11 +16,11 @@ class PhotosynthesisGame(BoardGame.BoardGame):
     
     @classmethod
     def get_ai_player_class(cls) -> type[BoardGame.Players.AIPlayer]:
-        return PlayerTypes.AIPlayer
+        return AIPlayer
     
     @classmethod
     def get_human_player_class(cls) -> type[BoardGame.Players.HumanPlayer]:
-        return PlayerTypes.HumanPlayer
+        return HumanPlayer
 
     SUN_POSITIONS = 6
 
@@ -28,16 +28,17 @@ class PhotosynthesisGame(BoardGame.BoardGame):
                  extra_round: bool=False, print_board=False):
         super(PhotosynthesisGame, self).__init__(players)
         self.__num_players = len(players)
-        self.__initialize_board(self.__num_players)
-        
-        self.__num_rounds = 3 + extra_round
+        self.__extra_round = extra_round
+
+        self.reset()
+
+    def reset(self):
+        self.__board = GameBoard(self.__num_players)
+        self.__num_rounds = 3 + self.__extra_round
         self.__current_round = -1
         self.__first_player_token = 0
         self.__curr_player = 0
-
-    def __initialize_board(self, num_players):
-        self.__board = GameBoard(num_players)
-
+        self.__game_over = False
 
     # Public Methods
 
@@ -49,13 +50,22 @@ class PhotosynthesisGame(BoardGame.BoardGame):
             for i in range(self.__num_players):
                 player_num = self.__curr_player
                 player = self._BoardGame__players[player_num]
-                possible_actions = [InitialPlacement(player_num, pos, i) for i, pos in enumerate(available_spaces)]
+
+                possible_actions = [InitialPlacement(player_num, pos, i) \
+                                                       for i, pos in enumerate(available_spaces)]
+                
+                game_state = BoardSummary(player_num, self.__board, 
+                                     remaining_turns=self.__num_rounds*6 + 2 - i,
+                                     possible_actions=possible_actions,
+                                     total_game_turns=self.__num_rounds*6 + 2,
+                                     init_setup=True)
+
                 if display:
                     print(f"{player.player_name}'s Turn")
                     self.__board.print_boards()
 
                 while True:
-                    action_ind = player.choose_move(possible_actions.copy(), num_suns=0)
+                    action_ind = player.choose_move(game_state)
                     try:
                         action:InitialPlacement = possible_actions[action_ind]
                     except Exception as ex:
@@ -74,17 +84,24 @@ class PhotosynthesisGame(BoardGame.BoardGame):
 
             for sun_pos in range(PhotosynthesisGame.SUN_POSITIONS):
                 self.__curr_player = self.__first_player_token
-                print(f'Sun Pointing: {self.__board.get_sun_direction_vec()}')
+                if display:
+                    print(f'Sun Pointing: {self.__board.get_sun_direction_vec()}')
                 for i in range(self.__num_players):
                     player:BoardGame.Players.Player = self._BoardGame__players[self.__curr_player]
                     while True:      # until player passes their turn
                         if display:
                             print(f"{player.player_name}'s Turn")
                             self.__board.print_boards()
-                        possible_actions = list(self.__board.get_possible_actions(self.__curr_player))
-                        num_suns = self.__board.get_player_suns(self.__curr_player)
+
+                        possible_actions = self.__board.get_possible_actions(self.__curr_player)
+                        game_state = BoardSummary(self.__curr_player, self.__board,
+                                                  remaining_turns = (self.__num_rounds - round)*6 - sun_pos,
+                                                  total_game_turns=self.__num_rounds*6 + 2,
+                                                  possible_actions=possible_actions,
+                                                  init_setup=False)
+            
                         while True:     # until valid action chosen
-                            action_ind= player.choose_move(possible_actions.copy(), num_suns)
+                            action_ind= player.choose_move(game_state)
                             try:
                                 action = possible_actions[action_ind]
                             except Exception as ex:
@@ -103,6 +120,7 @@ class PhotosynthesisGame(BoardGame.BoardGame):
                 if not (round == self.__num_rounds and self.__board.get_sun_pos() == 5): 
                     self.__board.rotate_sun()
             
+        self.__game_over = True
         scores = self.__board.get_player_scores()
         for player_num in range(self.__num_players):
             remaining_suns = self.__board.get_player_suns(player_num)
@@ -132,6 +150,9 @@ class PhotosynthesisGame(BoardGame.BoardGame):
     
     def get_sun_pos(self):
         return self.__sun_position
+    
+    def game_ended(self):
+        return self.__game_over
     
     def apply_action(self, action):
         if isinstance(action, BuyTree):
