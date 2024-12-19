@@ -241,12 +241,14 @@ class PhotosynthesisRLPlayer(AIPlayer):
             loss.backward()
             optimizer.step()
             self.state_trails = defaultdict(list)
+            self.epsilon = self.epsilon*0.999
 
             if n != 0 and n % save_every == 0:
                 model_num = len(os.listdir(self.directory))
                 self.save_model(f'model_{model_num}.pth')
 
         self.model.eval()
+        self.training = False
 
 
     def choose_move(self, state:BoardSummary):
@@ -259,8 +261,8 @@ class PhotosynthesisRLPlayer(AIPlayer):
 
         # make a choice (epsilon greedy if training)
         if self.training and np.random.uniform(0,1) < self.epsilon:
-                choice = torch.tensor([np.random.choice(len(state.available_actions))])
-                self.epsilon = self.epsilon*0.999
+            choice = torch.tensor([np.random.choice(len(state.available_actions))])
+
         else:
             choice = torch.argmax(Q_vals)
 

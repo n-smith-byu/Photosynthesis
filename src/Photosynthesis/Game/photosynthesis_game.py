@@ -60,16 +60,17 @@ class PhotosynthesisGame(BoardGame.BoardGame):
                                      total_game_turns=self.__num_rounds*6 + 2,
                                      init_setup=True)
 
-                if display:
-                    print(f"{player.player_name}'s Turn")
-                    self.__board.print_boards()
-
                 while True:
+                    if display:
+                        print(f"{player.player_name}'s Turn")
+                        self.__board.print_boards()
+                        
                     action_ind = player.choose_move(game_state)
                     try:
                         action:InitialPlacement = possible_actions[action_ind]
                     except Exception as ex:
                         print('Invalid Action')
+                        continue
 
                     self.__board.player_initial_tree_placement(action.player, action.position)
                     available_spaces.remove(action.position)
@@ -89,9 +90,6 @@ class PhotosynthesisGame(BoardGame.BoardGame):
                 for i in range(self.__num_players):
                     player:BoardGame.Players.Player = self._BoardGame__players[self.__curr_player]
                     while True:      # until player passes their turn
-                        if display:
-                            print(f"{player.player_name}'s Turn")
-                            self.__board.print_boards()
 
                         possible_actions = self.__board.get_possible_actions(self.__curr_player)
                         game_state = BoardSummary(self.__curr_player, self.__board,
@@ -101,11 +99,16 @@ class PhotosynthesisGame(BoardGame.BoardGame):
                                                   init_setup=False)
             
                         while True:     # until valid action chosen
+                            if display:
+                                print(f"{player.player_name}'s Turn")
+                                self.__board.print_boards()
+
                             action_ind= player.choose_move(game_state)
                             try:
                                 action = possible_actions[action_ind]
                             except Exception as ex:
                                 print('Invalid Action')
+                                continue
                             else:
                                 break
 
